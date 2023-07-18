@@ -1,0 +1,225 @@
+{
+  "uuid": "a11c32cc-fae5-40c1-9df3-7f6955121a04",
+  "name": "Scenario 'keycloak.scenario.authentication.ClientSecret' with 212 users-per-sec",
+  "grafana_input": {
+    "start": {
+      "epoch_seconds": 1689686710,
+      "iso": "2023-07-18T13:25:10+00:00"
+    },
+    "end": {
+      "epoch_seconds": 1689686778,
+      "iso": "2023-07-18T13:26:18+00:00"
+    },
+    "input": {
+      "scenario": "keycloak.scenario.authentication.ClientSecret",
+      "unit": "users-per-sec",
+      "value": 212,
+      "config": "-Drealm-name=realm-0 -Dclients-per-realm=10000"
+    }
+  },
+  "grafana_output": {
+    "stats": {
+      "type": "GROUP",
+      "name": "Global Information",
+      "path": "",
+      "pathFormatted": "group_missing-name-b06d1",
+      "stats": {
+        "name": "Global Information",
+        "numberOfRequests": {
+          "total": 13250,
+          "ok": 13250,
+          "ko": 0
+        },
+        "minResponseTime": {
+          "total": 255,
+          "ok": 255,
+          "ko": 0
+        },
+        "maxResponseTime": {
+          "total": 830,
+          "ok": 830,
+          "ko": 0
+        },
+        "meanResponseTime": {
+          "total": 265,
+          "ok": 265,
+          "ko": 0
+        },
+        "standardDeviation": {
+          "total": 18,
+          "ok": 18,
+          "ko": 0
+        },
+        "percentiles1": {
+          "total": 262,
+          "ok": 262,
+          "ko": 0
+        },
+        "percentiles2": {
+          "total": 265,
+          "ok": 265,
+          "ko": 0
+        },
+        "percentiles3": {
+          "total": 273,
+          "ok": 273,
+          "ko": 0
+        },
+        "percentiles4": {
+          "total": 375,
+          "ok": 375,
+          "ko": 0
+        },
+        "group1": {
+          "name": "t < 800 ms",
+          "count": 13249,
+          "percentage": 100
+        },
+        "group2": {
+          "name": "800 ms < t < 1200 ms",
+          "count": 1,
+          "percentage": 0
+        },
+        "group3": {
+          "name": "t > 1200 ms",
+          "count": 0,
+          "percentage": 0
+        },
+        "group4": {
+          "name": "failed",
+          "count": 0,
+          "percentage": 0
+        },
+        "meanNumberOfRequestsPerSecond": {
+          "total": 200.75757575757575,
+          "ok": 200.75757575757575,
+          "ko": 0
+        }
+      },
+      "contents": {
+        "req_client-credenti-35a47": {
+          "type": "REQUEST",
+          "name": "Client credentials grant type",
+          "path": "Client credentials grant type",
+          "pathFormatted": "req_client-credenti-35a47",
+          "stats": {
+            "name": "Client credentials grant type",
+            "numberOfRequests": {
+              "total": 13250,
+              "ok": 13250,
+              "ko": 0
+            },
+            "minResponseTime": {
+              "total": 255,
+              "ok": 255,
+              "ko": 0
+            },
+            "maxResponseTime": {
+              "total": 830,
+              "ok": 830,
+              "ko": 0
+            },
+            "meanResponseTime": {
+              "total": 265,
+              "ok": 265,
+              "ko": 0
+            },
+            "standardDeviation": {
+              "total": 18,
+              "ok": 18,
+              "ko": 0
+            },
+            "percentiles1": {
+              "total": 262,
+              "ok": 262,
+              "ko": 0
+            },
+            "percentiles2": {
+              "total": 265,
+              "ok": 265,
+              "ko": 0
+            },
+            "percentiles3": {
+              "total": 272,
+              "ok": 273,
+              "ko": 0
+            },
+            "percentiles4": {
+              "total": 375,
+              "ok": 375,
+              "ko": 0
+            },
+            "group1": {
+              "name": "t < 800 ms",
+              "count": 13249,
+              "percentage": 100
+            },
+            "group2": {
+              "name": "800 ms < t < 1200 ms",
+              "count": 1,
+              "percentage": 0
+            },
+            "group3": {
+              "name": "t > 1200 ms",
+              "count": 0,
+              "percentage": 0
+            },
+            "group4": {
+              "name": "failed",
+              "count": 0,
+              "percentage": 0
+            },
+            "meanNumberOfRequestsPerSecond": {
+              "total": 200.75757575757575,
+              "ok": 200.75757575757575,
+              "ko": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "system_under_test": {
+    "rosa": {
+      "creation_timestamp": "2023-07-18T07:32:25Z",
+      "flavour": {
+        "href": "/api/clusters_mgmt/v1/flavours/osd-4",
+        "id": "osd-4",
+        "kind": "FlavourLink"
+      },
+      "multi_az": false,
+      "nodes": {
+        "availability_zones": [
+          "eu-west-3a"
+        ],
+        "compute": 2,
+        "compute_machine_type": {
+          "href": "/api/clusters_mgmt/v1/machine_types/m5.xlarge",
+          "id": "m5.xlarge",
+          "kind": "MachineTypeLink"
+        },
+        "infra": 2,
+        "infra_machine_type": {
+          "href": "/api/clusters_mgmt/v1/machine_types/r5.xlarge",
+          "id": "r5.xlarge",
+          "kind": "MachineTypeLink"
+        },
+        "master": 3
+      },
+      "openshift_version": "4.13.4",
+      "region": {
+        "href": "/api/clusters_mgmt/v1/cloud_providers/aws/regions/eu-west-3",
+        "id": "eu-west-3",
+        "kind": "CloudRegionLink"
+      },
+      "version": {
+        "channel_group": "stable",
+        "end_of_life_timestamp": "2024-09-17T00:00:00Z",
+        "href": "/api/clusters_mgmt/v1/versions/openshift-v4.13.4",
+        "id": "openshift-v4.13.4",
+        "kind": "Version",
+        "raw_id": "4.13.4"
+      }
+    }
+  }
+}
