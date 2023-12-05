@@ -1,0 +1,47 @@
+name: Infinispan Batch
+description: Execute a Batch CR against a running Infinispan cluster
+
+inputs:
+  name:
+    description: 'The name of the Batch CR to create'
+    required: true
+  batch:
+    description: 'The CLI Batch commands to execute'
+    required: true
+  cluster:
+    description: 'The name of the Infinispan CR to execute the batch against'
+    required: true
+  namespace:
+    description: 'The namespace containing the Infinispan cluster'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create Batch CR
+      shell: bash
+      run: |
+        cat << EOF | kubectl -n ${{ inputs.namespace }} apply -f -
+        apiVersion: infinispan.org/v2alpha1
+        kind: Batch
+        metadata:
+          name: ${{ inputs.name }}
+        spec:
+          cluster: ${{ inputs.cluster }}
+          config: |
+            ${{ inputs.batch }}
+        EOF
+
+    - name: Wait for Batch
+      shell: bash
+      run: kubectl -n ${{ inputs.namespace }} wait --for=jsonpath='{.status.phase}'=Succeeded Batch/${{ inputs.name }}
+
+    - name: Batch logs
+      if: always()
+      shell: bash
+      run: kubectl -n ${{ inputs.namespace }} logs job/${{ inputs.name }}
+
+    - name: Delete Batch CR
+      if: always()
+      shell: bash
+      run: kubectl -n ${{ inputs.namespace }} delete Batch/${{ inputs.name }}
