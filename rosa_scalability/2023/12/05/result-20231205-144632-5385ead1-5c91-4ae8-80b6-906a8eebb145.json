@@ -1,0 +1,14 @@
+{
+  "uuid": "5385ead1-5c91-4ae8-80b6-906a8eebb145",
+  "name": "ROSA Scalability Benchmark Run Results",
+  "Execution Date and Time": "2023-12-05T14:46:32+00:00",
+  "Memory usage for sessions": {
+    "Active sessions per 500 MB memory per Pod in 3 Pod cluster": 64778
+  },
+  "CPU usage for user logins": {
+    "User Logins per second per 1vCPU per Pod in 3 Pod cluster": 41
+  },
+  "CPU usage for client credential grants": {
+    "Client Credential Grants per second per 1vCPU per Pod in 3 Pod cluster": 359
+  }
+}
