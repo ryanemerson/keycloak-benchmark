@@ -11,10 +11,10 @@ on:
 jobs:
   cluster:
     name: ROSA Scheduled Create cluster
-    if: github.event_name != 'schedule' || github.repository == 'keycloak/keycloak-benchmark'
     uses: ./.github/workflows/rosa-multi-az-cluster-create.yml
     with:
-      clusterPrefix: gh-keycloak # ${{ env.CLUSTER_PREFIX }} -- unfortunately 'env.' doesn't work here
+      clusterPrefix: gh-ryan # ${{ env.CLUSTER_PREFIX }} -- unfortunately 'env.' doesn't work here
+      region: eu-north-1
     secrets: inherit
 
   run-functional-tests:

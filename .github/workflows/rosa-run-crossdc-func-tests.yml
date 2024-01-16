@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PROJECT: runner-keycloak
+  PROJECT: remerson-keycloak
 
 jobs:
   run-tests:
