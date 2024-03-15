@@ -16,6 +16,10 @@ terraform {
       source  = "hashicorp/null"
       version = "~> 3.2"
     }
+    rhcs = {
+      source = "terraform-redhat/rhcs"
+      version = "1.6.0-prerelease.1"
+    }
   }
 
   required_version = ">= 1.4.0"
@@ -25,4 +29,9 @@ provider "aws" {
   region = var.region
   # Force set sts_region to preventing hanging on invalid regions
   sts_region = "us-east-1"
+}
+
+provider "rhcs" {
+  token = var.token
+  url   = "https://api.openshift.com"
 }
