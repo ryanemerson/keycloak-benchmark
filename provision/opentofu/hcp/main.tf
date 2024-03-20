@@ -136,16 +136,16 @@ data "aws_availability_zones" "available_azs" {
   }
 }
 
-#module "oidc_config" {
-#  token                = var.token
-#  url                  = var.url
-#  source               = "../oidc_provider"
-#  managed              = true
-#  operator_role_prefix = var.operator_role_prefix
-#  account_role_prefix  = var.account_role_prefix
-#  tags                 = var.tags
-#  path                 = var.path
-#}
+# Create managed OIDC config
+module "oidc_config" {
+  token                = var.token
+  url                  = "https://api.openshift.com"
+  source               = "../modules/oidc_provider"
+  managed              = true
+  operator_role_prefix = var.operator_role_prefix
+  account_role_prefix  = var.account_role_prefix
+  path                 = var.path
+}
 
 data "rhcs_versions" "version" {
   search = "enabled='t' and rosa_enabled='t' and channel_group='stable'"
@@ -165,7 +165,7 @@ locals {
       worker_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${local.account_role_path}${var.account_role_prefix}-HCP-ROSA-Worker-Role"
     }
     operator_role_prefix = var.operator_role_prefix,
-    oidc_config_id       = var.oidc_config_id
+    oidc_config_id       = module.oidc_config.id
   }
 }
 

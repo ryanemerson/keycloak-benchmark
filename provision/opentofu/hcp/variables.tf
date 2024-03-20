@@ -27,11 +27,6 @@ variable "path" {
   default     = null
 }
 
-variable "oidc_config_id" {
-  type    = string
-  default = null
-}
-
 variable "subnet_azs" {
   # Usage: -var 'subnet_azs=["us-east-1a"]' or -var 'subnet_azs["use1-az1"]'
   description = <<-EOT
