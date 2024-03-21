@@ -13,5 +13,5 @@ terraform {
 
 provider "rhcs" {
   token = var.token
-  url = var.url
+  url = "https://api.stage.openshift.com"
 }

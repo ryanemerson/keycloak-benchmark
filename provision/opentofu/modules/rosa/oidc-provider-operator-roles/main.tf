@@ -13,7 +13,6 @@ resource "rhcs_rosa_oidc_config" "oidc_config" {
   managed            = local.managed
   secret_arn         = local.managed ? null : module.aws_secrets_manager[0].secret_arn
   issuer_url         = local.managed ? null : rhcs_rosa_oidc_config_input.oidc_input[0].issuer_url
-  installer_role_arn = var.installer_role_arn
 }
 
 resource "aws_iam_openid_connect_provider" "oidc_provider" {
@@ -132,19 +131,6 @@ resource "time_sleep" "wait_10_seconds" {
   }
 }
 
-resource "null_resource" "unmanaged_vars_validation" {
-  lifecycle {
-    precondition {
-      condition = (local.managed == false && var.installer_role_arn != null) || (local.managed != false && var.installer_role_arn == null)
-      error_message = local.managed == true ? (
-        "\"installer_role_arn\" variable should not contain a value when using a managed OIDC provider."
-        ) : (
-        "\"installer_role_arn\" variable should have a value when using an unmanaged OIDC provider."
-      )
-    }
-  }
-}
-
 ###########################################################################
 ## Below is taken from rhcs-hcp module `operator-roles`
 ###########################################################################
@@ -209,7 +195,6 @@ locals {
     },
   ]
   operator_roles_count = length(local.operator_roles_properties)
-  operator_role_prefix = var.operator_role_prefix != null ? var.operator_role_prefix : var.account_role_prefix
 }
 
 data "aws_iam_policy_document" "custom_trust_policy" {
@@ -237,10 +222,10 @@ module "operator_iam_role" {
 
   create_role = true
 
-  role_name = substr("${local.operator_role_prefix}-${local.operator_roles_properties[count.index].operator_namespace}-${local.operator_roles_properties[count.index].operator_name}", 0, 64)
+  role_name = substr("${var.operator_role_prefix}-${local.operator_roles_properties[count.index].operator_namespace}-${local.operator_roles_properties[count.index].operator_name}", 0, 64)
 
   role_path                     = var.path
-  role_permissions_boundary_arn = var.permissions_boundary
+  role_permissions_boundary_arn = ""
 
   create_custom_role_trust_policy = true
   custom_role_trust_policy        = data.aws_iam_policy_document.custom_trust_policy[count.index].json
@@ -264,7 +249,7 @@ data "rhcs_info" "current" {}
 resource "time_sleep" "role_resources_propagation" {
   create_duration = "20s"
   triggers = {
-    operator_role_prefix = local.operator_role_prefix
+    operator_role_prefix = var.operator_role_prefix
     operator_role_arns   = jsonencode([for value in module.operator_iam_role : value.iam_role_arn])
   }
 }

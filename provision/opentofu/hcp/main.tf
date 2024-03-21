@@ -112,15 +112,14 @@ module "account-roles" {
   source = "../modules/rosa/account-roles"
 
   account_role_prefix = var.account_role_prefix
-  openshift_version   = var.openshift_version
   token               = var.token
+  path                = var.path
 }
 
 module "operator-roles" {
-  url                  = "https://api.openshift.com"
   source               = "../modules/rosa/oidc-provider-operator-roles"
+
   operator_role_prefix = var.operator_role_prefix
-  account_role_prefix  = var.account_role_prefix
   path                 = var.path
   oidc_config          = "managed"
 }

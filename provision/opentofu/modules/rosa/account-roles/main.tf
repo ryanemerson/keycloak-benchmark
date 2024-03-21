@@ -1,19 +1,4 @@
 locals {
-  major_version = "${split(".", var.openshift_version)[0]}.${split(".", var.openshift_version)[1]}"
-  versionfilter = var.openshift_version == null ? "" : " and raw_id like '%${local.major_version}%'"
-}
-
-data "rhcs_versions" "all_versions" {
-  search = "enabled='t' and rosa_enabled='t' and channel_group='${var.channel_group}'${local.versionfilter}"
-  order  = "id"
-}
-
-
-###########################################################################
-## Below is taken from rhcs-hcp module `account-iam-resources`
-###########################################################################
-
-locals {
   path = coalesce(var.path, "/")
   account_roles_properties = [
     {
@@ -39,12 +24,6 @@ locals {
     },
   ]
   account_roles_count = length(local.account_roles_properties)
-  patch_version_list  = [for s in data.rhcs_versions.all_versions.items : s.name]
-  minor_version_list = length(local.patch_version_list) > 0 ? (
-    distinct([for s in local.patch_version_list : format("%s.%s", split(".", s)[0], split(".", s)[1])])
-    ) : (
-    []
-  )
   account_role_prefix_valid = var.account_role_prefix != null ? (
     var.account_role_prefix
     ) : (
@@ -75,7 +54,7 @@ module "account_iam_role" {
   role_name = "${local.account_role_prefix_valid}-${local.account_roles_properties[count.index].role_name}-Role"
 
   role_path                     = local.path
-  role_permissions_boundary_arn = var.permissions_boundary
+  role_permissions_boundary_arn = ""
 
   create_custom_role_trust_policy = true
   custom_role_trust_policy        = data.aws_iam_policy_document.custom_trust_policy[count.index].json
