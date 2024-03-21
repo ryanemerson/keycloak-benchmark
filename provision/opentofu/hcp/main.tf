@@ -42,14 +42,6 @@ locals {
   vpc_cidr_prefix = tonumber(split("/", var.vpc_cidr)[1])
   subnet_newbits  = var.subnet_cidr_prefix - local.vpc_cidr_prefix
   subnet_count    = var.private_subnets_only ? length(local.azs) : length(local.azs) * 2
-  all_subnets     = (
-  [
-    for cidr_block in cidrsubnets(var.vpc_cidr, 1, 1) :
-    local.subnet_newbits == 1 ?
-  [cidr_block] :
-  cidrsubnets(cidr_block, [for i in range(length(local.azs)) : local.subnet_newbits - 1]...)
-]
-  )
 }
 
 # Performing multi-input validations in null_resource block
@@ -117,7 +109,7 @@ module "account-roles" {
 }
 
 module "operator-roles" {
-  source               = "../modules/rosa/oidc-provider-operator-roles"
+  source = "../modules/rosa/oidc-provider-operator-roles"
 
   operator_role_prefix = var.operator_role_prefix
   path                 = var.path
@@ -125,40 +117,14 @@ module "operator-roles" {
 }
 
 module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 4.0.0"
-
+  source = "../modules/rosa/vpc"
   # This module doesn't really depend on these modules, but ensuring these are executed first lets us fail-fast if there
   # are issues with the roles and prevents us having to wait for a VPC to be provisioned before errors are reported
-  depends_on = [module.account-roles, module.operator-roles]
+  depends_on = [module.account-roles,module.operator-roles]
 
-  name = "${var.cluster_name}-vpc"
-  cidr = var.vpc_cidr
-
-  azs                 = local.azs
-  private_subnets     = local.all_subnets[0]
-  public_subnets      = local.all_subnets[1]
-  # Tags defined per https://repost.aws/knowledge-center/eks-vpc-subnet-discovery
-  private_subnet_tags = merge(var.extra_tags,
-    {
-      "kubernetes.io/role/internal-elb" = "1"
-    })
-  public_subnet_tags = merge(var.extra_tags,
-    {
-      "kubernetes.io/role/elb" = "1"
-    })
-
-  enable_nat_gateway            = true
-  enable_dns_hostnames          = true
-  enable_dns_support            = true
-  manage_default_security_group = false
-
-  tags = merge(var.extra_tags,
-    {
-      Terraform    = "true"
-      service      = "ROSA"
-      cluster_name = var.cluster_name
-    })
+  cluster_name = var.cluster_name
+  region       = var.region
+  subnet_azs   = local.azs
 }
 
 data "aws_caller_identity" "current" {
@@ -188,7 +154,7 @@ resource "rhcs_cluster_rosa_hcp" "rosa_hcp_cluster" {
     },
   )
 
-  aws_subnet_ids           = concat(module.vpc.public_subnets, module.vpc.private_subnets)
+  aws_subnet_ids           = module.vpc.cluster-subnets
   wait_for_create_complete = true
   sts                      = local.sts_roles
   availability_zones       = local.azs
