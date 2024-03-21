@@ -1,3 +1,19 @@
+data "aws_availability_zones" "available" {
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+data "aws_availability_zones" "available_azs" {
+  state = "available"
+  filter {
+    name   = "opt-in-status"
+    # Currently, no support for Local Zones, Wavelength, or Outpost
+    values = ["opt-in-not-required"]
+  }
+}
+
 locals {
   supported_regions = {
     "ap-northeast-1" = "apne1"
@@ -17,30 +33,16 @@ locals {
     us-east-1      = [2, 4, 6]
     ap-northeast-1 = [1, 2, 4]
   }
-  az_id_prefix = lookup(local.supported_regions, var.region, null) != null ? "${local.supported_regions[var.region]}-az" : "unknown-az"
-  #  azs          = (
-  #  length(var.subnet_azs) > 0 ?
-  #  (var.single_az_only ? [var.subnet_azs[0]] : var.subnet_azs) :
-  #  (var.single_az_only ?
-  #  ["${local.az_id_prefix}${lookup(local.well_known_az_ids, var.region, [1, 2, 3])[0]}"] :
-  #  [for id in lookup(local.well_known_az_ids, var.region, [1, 2, 3]) : "${local.az_id_prefix}${id}"]
-  #  )
-  #  )
+  azs      = slice(data.aws_availability_zones.available.names, 0, 1)
   # If an AZ has a single hyphen, it's an AZ ID
-  az_ids       = [for az in local.azs : az if length(split("-", az)) == 2]
+  az_ids   = [for az in local.azs : az if length(split("-", az)) == 2]
   # If an AZ has a two hyphens, it's an AZ name
-  az_names     = [for az in local.azs : az if length(split("-", az)) == 3]
+  az_names = [for az in local.azs : az if length(split("-", az)) == 3]
 
   vpc_cidr_prefix = tonumber(split("/", var.vpc_cidr)[1])
   subnet_newbits  = var.subnet_cidr_prefix - local.vpc_cidr_prefix
   subnet_count    = var.private_subnets_only ? length(local.azs) : length(local.azs) * 2
   all_subnets     = (
-  var.private_subnets_only ?
-  [
-    local.subnet_newbits == 0 ?
-    [var.vpc_cidr] :
-    cidrsubnets(var.vpc_cidr, [for i in range(length(local.azs)) : local.subnet_newbits]...), []
-  ] :
   [
     for cidr_block in cidrsubnets(var.vpc_cidr, 1, 1) :
     local.subnet_newbits == 1 ?
@@ -49,17 +51,6 @@ locals {
 ]
   )
 }
-
-data "aws_availability_zones" "available" {
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-locals {
-  azs = slice(data.aws_availability_zones.available.names, 0, 1)
-}
-
 
 # Performing multi-input validations in null_resource block
 # https://github.com/hashicorp/terraform/issues/25609
@@ -76,15 +67,6 @@ resource "null_resource" "validations" {
     precondition {
       condition     = local.vpc_cidr_prefix <= var.subnet_cidr_prefix
       error_message = "Subnet CIDR prefix must be smaller prefix (larger number) than the VPC CIDR prefix."
-    }
-
-    precondition {
-      condition     = !(var.single_az_only && length(var.subnet_azs) > 1)
-      error_message = <<-EOT
-        It's invalid to supply more than 1 `subnet_azs` while also specifying `single_az_only=true` (default).
-          To use more than 1 availability zone, set `-var single_az_only=false`.
-          Or set `-var 'subnet_azs=["${length(var.subnet_azs) > 0 ? var.subnet_azs[0] : "none"}"]'`
-      EOT
     }
 
     precondition {
@@ -126,22 +108,12 @@ resource "null_resource" "validations" {
   }
 }
 
-
-data "aws_availability_zones" "available_azs" {
-  state = "available"
-  filter {
-    name   = "opt-in-status"
-    # Currently, no support for Local Zones, Wavelength, or Outpost
-    values = ["opt-in-not-required"]
-  }
-}
-
 module "account-roles" {
   source = "../modules/rosa/account-roles"
 
   account_role_prefix = var.account_role_prefix
   openshift_version   = var.openshift_version
-  token = var.token
+  token               = var.token
 }
 
 module "operator-roles" {
@@ -151,6 +123,46 @@ module "operator-roles" {
   account_role_prefix  = var.account_role_prefix
   path                 = var.path
   oidc_config          = "managed"
+}
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "~> 4.0.0"
+
+  # This module doesn't really depend on these modules, but ensuring these are executed first lets us fail-fast if there
+  # are issues with the roles and prevents us having to wait for a VPC to be provisioned before errors are reported
+  depends_on = [module.account-roles, module.operator-roles]
+
+  name = "${var.cluster_name}-vpc"
+  cidr = var.vpc_cidr
+
+  azs                 = local.azs
+  private_subnets     = local.all_subnets[0]
+  public_subnets      = local.all_subnets[1]
+  # Tags defined per https://repost.aws/knowledge-center/eks-vpc-subnet-discovery
+  private_subnet_tags = merge(var.extra_tags,
+    {
+      "kubernetes.io/role/internal-elb" = "1"
+    })
+  public_subnet_tags = merge(var.extra_tags,
+    {
+      "kubernetes.io/role/elb" = "1"
+    })
+
+  enable_nat_gateway            = true
+  enable_dns_hostnames          = true
+  enable_dns_support            = true
+  manage_default_security_group = false
+
+  tags = merge(var.extra_tags,
+    {
+      Terraform    = "true"
+      service      = "ROSA"
+      cluster_name = var.cluster_name
+    })
+}
+
+data "aws_caller_identity" "current" {
 }
 
 locals {
@@ -166,20 +178,6 @@ locals {
   }
 }
 
-module "vpc" {
-  source = "../modules/rosa/vpc"
-  # This module doesn't really depend on these modules, but ensuring these are executed first lets us fail-fast if there
-  # are issues with the roles and prevents us having to wait for a VPC to be provisioned before errors are reported
-  depends_on = [module.account-roles,module.operator-roles]
-
-  cluster_name = var.cluster_name
-  region       = var.region
-  subnet_azs   = local.azs
-}
-
-data "aws_caller_identity" "current" {
-}
-
 resource "rhcs_cluster_rosa_hcp" "rosa_hcp_cluster" {
   name                   = var.cluster_name
   cloud_region           = var.region
@@ -191,18 +189,14 @@ resource "rhcs_cluster_rosa_hcp" "rosa_hcp_cluster" {
     },
   )
 
-  aws_subnet_ids           = module.vpc.cluster-subnets
+  aws_subnet_ids           = concat(module.vpc.public_subnets, module.vpc.private_subnets)
   wait_for_create_complete = true
   sts                      = local.sts_roles
   availability_zones       = local.azs
-  #  replicas            = var.replicas
-  #  autoscaling_enabled = var.autoscaling_enabled
-  #  min_replicas        = var.min_replicas
-  #  max_replicas        = var.max_replicas
   version                  = var.openshift_version
 }
 
 resource "rhcs_cluster_wait" "rosa_cluster" {
   cluster = rhcs_cluster_rosa_hcp.rosa_hcp_cluster.id
-  timeout = 60 # in minutes
+  timeout = 30
 }

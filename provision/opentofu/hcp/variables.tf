@@ -27,19 +27,8 @@ variable "path" {
   default     = null
 }
 
-variable "subnet_azs" {
-  # Usage: -var 'subnet_azs=["us-east-1a"]' or -var 'subnet_azs["use1-az1"]'
-  description = <<-EOT
-    List of availability zone names or IDs that subnets can get deployed into.
-      If not provided, defaults to well known AZ IDs for each region.
-      Does not currently support Local Zones, Outpost, or Wavelength.
-  EOT
-  type        = list(string)
-  default     = []
-}
-
 variable "cluster_name" {
-  description = "Name of the created ROSA with hosted control planes cluster."
+  description = "Name of the ROSA hosted control planes cluster to be created."
   type        = string
   default     = "rosa-hcp"
 
@@ -79,12 +68,6 @@ variable "private_subnets_only" {
   description = "Only create private subnets"
   type        = bool
   default     = false
-}
-
-variable "single_az_only" {
-  description = "Only create subnets in a single availability zone"
-  type        = bool
-  default     = true
 }
 
 variable "extra_tags" {
