@@ -136,24 +136,21 @@ data "aws_availability_zones" "available_azs" {
   }
 }
 
-# Create managed OIDC config
-module "oidc_config" {
-  token                = var.token
+module "account-roles" {
+  source = "../modules/rosa/account-roles"
+
+  account_role_prefix = var.account_role_prefix
+  openshift_version   = var.openshift_version
+  token = var.token
+}
+
+module "operator-roles" {
   url                  = "https://api.openshift.com"
-  source               = "../modules/oidc_provider"
-  managed              = true
+  source               = "../modules/rosa/oidc-provider-operator-roles"
   operator_role_prefix = var.operator_role_prefix
   account_role_prefix  = var.account_role_prefix
   path                 = var.path
-}
-
-data "rhcs_versions" "version" {
-  search = "enabled='t' and rosa_enabled='t' and channel_group='stable'"
-  order  = "id"
-}
-
-locals {
-  version = data.rhcs_versions.version.items[length(data.rhcs_versions.version.items) - 1].name
+  oidc_config          = "managed"
 }
 
 locals {
@@ -165,12 +162,15 @@ locals {
       worker_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${local.account_role_path}${var.account_role_prefix}-HCP-ROSA-Worker-Role"
     }
     operator_role_prefix = var.operator_role_prefix,
-    oidc_config_id       = module.oidc_config.id
+    oidc_config_id       = module.operator-roles.oidc_config_id
   }
 }
 
 module "vpc" {
-  source = "../modules/vpc"
+  source = "../modules/rosa/vpc"
+  # This module doesn't really depend on these modules, but ensuring these are executed first lets us fail-fast if there
+  # are issues with the roles and prevents us having to wait for a VPC to be provisioned before errors are reported
+  depends_on = [module.account-roles,module.operator-roles]
 
   cluster_name = var.cluster_name
   region       = var.region
@@ -199,10 +199,7 @@ resource "rhcs_cluster_rosa_hcp" "rosa_hcp_cluster" {
   #  autoscaling_enabled = var.autoscaling_enabled
   #  min_replicas        = var.min_replicas
   #  max_replicas        = var.max_replicas
-  version                  = local.version
-  #  properties = {
-  #    rosa_creator_arn = data.aws_caller_identity.current.arn
-  #  }
+  version                  = var.openshift_version
 }
 
 resource "rhcs_cluster_wait" "rosa_cluster" {

@@ -92,3 +92,8 @@ variable "extra_tags" {
   type = map
   default = {}
 }
+
+variable "openshift_version" {
+  type    = string
+  default = "4.14.5"
+}
