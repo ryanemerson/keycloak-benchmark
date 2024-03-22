@@ -5,6 +5,8 @@ if [ -f ./.env ]; then
   source ./.env
 fi
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 AWS_ACCOUNT=${AWS_ACCOUNT:-$(aws sts get-caller-identity --query "Account" --output text)}
 if [ -z "$AWS_ACCOUNT" ]; then echo "Variable AWS_ACCOUNT needs to be set."; exit 1; fi
 
@@ -34,27 +36,8 @@ else
 
   echo "Installing ROSA cluster ${CLUSTER_NAME}"
 
-  MACHINE_CIDR=$(./rosa_machine_cidr.sh)
-
-  ROSA_CMD="rosa create cluster \
-  --sts \
-  --cluster-name ${CLUSTER_NAME} \
-  --version ${VERSION} \
-  --role-arn arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-Installer-Role \
-  --support-role-arn arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-Support-Role \
-  --controlplane-iam-role arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-ControlPlane-Role \
-  --worker-iam-role arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-Worker-Role \
-  --operator-roles-prefix ${CLUSTER_NAME} \
-  --region ${REGION} ${MULTI_AZ_PARAM} ${AVAILABILITY_ZONES_PARAM} \
-  --replicas ${REPLICAS} \
-  --compute-machine-type ${COMPUTE_MACHINE_TYPE} \
-  --machine-cidr ${MACHINE_CIDR} \
-  --service-cidr 172.30.0.0/16 \
-  --pod-cidr 10.128.0.0/14 \
-  --host-prefix 23"
-
-  echo $ROSA_CMD
-  $ROSA_CMD
+  cd ${SCRIPT_DIR}/../opentofu/hcp
+  tofu apply -var cluster_name=${CLUSTER_NAME} -var region=${REGION}
 fi
 
 mkdir -p "logs/${CLUSTER_NAME}"
@@ -62,38 +45,6 @@ mkdir -p "logs/${CLUSTER_NAME}"
 function custom_date() {
     date '+%Y%m%d-%H%M%S'
 }
-
-echo "Creating operator roles."
-rosa create operator-roles --cluster "${CLUSTER_NAME}" --mode auto --yes > "logs/${CLUSTER_NAME}/$(custom_date)_create-operator-roles.log"
-
-echo "Creating OIDC provider."
-rosa create oidc-provider --cluster "${CLUSTER_NAME}" --mode auto --yes > "logs/${CLUSTER_NAME}/$(custom_date)_create-oidc-provider.log"
-
-echo "Waiting for cluster installation to finish."
-# There have been failures with 'ERR: Failed to watch logs for cluster ... connection reset by peer' probably because services in the cluster were restarting during the cluster initialization.
-# Those errors don't show an installation problem, and installation will continue asynchronously. Therefore, retry.
-TIMEOUT=$(($(date +%s) + 3600))
-while true ; do
-  if (rosa logs install --cluster "${CLUSTER_NAME}" --watch --tail=1000000 >> "logs/${CLUSTER_NAME}/$(custom_date)_create-cluster.log"); then
-    break
-  fi
-  if (( TIMEOUT < $(date +%s))); then
-    echo "Timeout exceeded"
-    exit 1
-  fi
-  echo "retrying watching logs after failure"
-  sleep 1
-done
-
-echo "Cluster installation complete."
-echo
-
-./rosa_recreate_admin.sh
-
-SCALING_MACHINE_POOL=$(rosa list machinepools -c "${CLUSTER_NAME}" -o json | jq -r '.[] | select(.id == "scaling") | .id')
-if [[ "${SCALING_MACHINE_POOL}" != "scaling" ]]; then
-    rosa create machinepool -c "${CLUSTER_NAME}" --instance-type m5.4xlarge --max-replicas 10 --min-replicas 0 --name scaling --enable-autoscaling
-fi
 
 ./rosa_efs_create.sh
 ../infinispan/install_operator.sh

@@ -11,16 +11,6 @@ variable "region" {
   type        = string
 }
 
-variable "account_role_prefix" {
-  type    = string
-  default = "kcb"
-}
-
-variable "operator_role_prefix" {
-  type    = string
-  default = "kcb"
-}
-
 variable "path" {
   description = "(Optional) The arn path for the account/operator roles as well as their policies."
   type        = string

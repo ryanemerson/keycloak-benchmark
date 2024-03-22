@@ -42,6 +42,9 @@ locals {
   vpc_cidr_prefix = tonumber(split("/", var.vpc_cidr)[1])
   subnet_newbits  = var.subnet_cidr_prefix - local.vpc_cidr_prefix
   subnet_count    = var.private_subnets_only ? length(local.azs) : length(local.azs) * 2
+
+  account_role_prefix  = var.cluster_name
+  operator_role_prefix = var.cluster_name
 }
 
 # Performing multi-input validations in null_resource block
@@ -103,7 +106,7 @@ resource "null_resource" "validations" {
 module "account-roles" {
   source = "../modules/rosa/account-roles"
 
-  account_role_prefix = var.account_role_prefix
+  account_role_prefix = local.account_role_prefix
   token               = var.token
   path                = var.path
 }
@@ -111,20 +114,28 @@ module "account-roles" {
 module "operator-roles" {
   source = "../modules/rosa/oidc-provider-operator-roles"
 
-  operator_role_prefix = var.operator_role_prefix
+  operator_role_prefix = local.operator_role_prefix
   path                 = var.path
   oidc_config          = "managed"
 }
 
+data "external" "rosa" {
+  program = [
+    "sh", "${path.module}/scripts/rosa_machine_cidr.sh"
+  ]
+}
+
 module "vpc" {
-  source = "../modules/rosa/vpc"
+  source     = "../modules/rosa/vpc"
   # This module doesn't really depend on these modules, but ensuring these are executed first lets us fail-fast if there
   # are issues with the roles and prevents us having to wait for a VPC to be provisioned before errors are reported
-  depends_on = [module.account-roles,module.operator-roles]
+  depends_on = [module.account-roles, module.operator-roles]
 
-  cluster_name = var.cluster_name
-  region       = var.region
-  subnet_azs   = local.azs
+  cluster_name       = var.cluster_name
+  region             = var.region
+  subnet_azs         = local.azs
+  vpc_cidr           = data.external.rosa.result.cidr
+  subnet_cidr_prefix = 28
 }
 
 data "aws_caller_identity" "current" {
@@ -133,12 +144,12 @@ data "aws_caller_identity" "current" {
 locals {
   account_role_path = coalesce(var.path, "/")
   sts_roles         = {
-    role_arn           = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${local.account_role_path}${var.account_role_prefix}-HCP-ROSA-Installer-Role",
-    support_role_arn   = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${local.account_role_path}${var.account_role_prefix}-HCP-ROSA-Support-Role",
+    role_arn           = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${local.account_role_path}${local.account_role_prefix}-HCP-ROSA-Installer-Role",
+    support_role_arn   = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${local.account_role_path}${local.account_role_prefix}-HCP-ROSA-Support-Role",
     instance_iam_roles = {
-      worker_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${local.account_role_path}${var.account_role_prefix}-HCP-ROSA-Worker-Role"
+      worker_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role${local.account_role_path}${local.account_role_prefix}-HCP-ROSA-Worker-Role"
     }
-    operator_role_prefix = var.operator_role_prefix,
+    operator_role_prefix = local.operator_role_prefix,
     oidc_config_id       = module.operator-roles.oidc_config_id
   }
 }
@@ -159,9 +170,37 @@ resource "rhcs_cluster_rosa_hcp" "rosa_hcp_cluster" {
   sts                      = local.sts_roles
   availability_zones       = local.azs
   version                  = var.openshift_version
+  machine_cidr             = data.external.rosa.result.cidr
 }
+
+# TODO FIX
+#resource "rhcs_hcp_machine_pool" "my_pool" {
+#  cluster       = rhcs_cluster_rosa_hcp.rosa_hcp_cluster.name
+#  name          = "scaling"
+#  aws_node_pool = {
+#    instance_type = "m5.4xlarge"
+#  }
+#  autoscaling = {
+#    enabled      = true,
+#    max_replicas = 10,
+#    min_replicas = 0
+#  }
+#  subnet_id = module.vpc.cluster-public-subnets[0]
+#}
 
 resource "rhcs_cluster_wait" "rosa_cluster" {
   cluster = rhcs_cluster_rosa_hcp.rosa_hcp_cluster.id
   timeout = 30
+}
+
+resource "null_resource" "create_admin" {
+  depends_on = [rhcs_cluster_wait.rosa_cluster]
+  provisioner "local-exec" {
+    command     = "./scripts/rosa_recreate_admin.sh"
+    environment = {
+      CLUSTER_NAME = var.cluster_name
+    }
+    interpreter = ["bash"]
+    working_dir = path.module
+  }
 }

@@ -23,4 +23,4 @@ while true; do
     break
   fi
 done
-echo ${CIDR}
+echo "{\"cidr\":\"${CIDR}\"}"
