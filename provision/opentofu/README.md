@@ -5,7 +5,7 @@ This is the root directory for managing all OpenTofu state.
 All OpenTofu modules should be created in the `./modules` folder
 
 ## State
-All root modules should use a [S3 Backend](https://developer.hashicorp.com/terraform/language/settings/backends/s3) to
+All root modules should use a [S3 Backend](https://opentofu.org/docs/language/settings/backends/s3/) to
 store state so that it's possible for centralised management of resources created by the team. A root module should add
 the following to their `providers.tf` file:
 

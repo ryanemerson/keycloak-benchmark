@@ -22,9 +22,6 @@ requiredEnv AWS_ACCOUNT COMPUTE_MACHINE_TYPE CLUSTER_NAME REGION REPLICAS VERSIO
 
 CLUSTER_NAME=${CLUSTER_NAME:-$(whoami)}
 
-if [ "$MULTI_AZ" = "true" ]; then MULTI_AZ_PARAM="--multi-az"; else MULTI_AZ_PARAM=""; fi
-if [ -z "$AVAILABILITY_ZONES" ]; then AVAILABILITY_ZONES_PARAM=""; else AVAILABILITY_ZONES_PARAM="--availability-zones $AVAILABILITY_ZONES"; fi
-
 echo "Verifying ROSA prerequisites."
 echo "Check if AWS CLI is installed."; aws --version
 echo "Check if ROSA CLI is installed."; rosa version
@@ -37,7 +34,7 @@ rosa verify quota
 
 echo "Installing ROSA cluster ${CLUSTER_NAME}"
 
-cd ${SCRIPT_DIR}/../opentofu/hcp
+cd ${SCRIPT_DIR}/../opentofu/modules/rosa/hcp
 tofu init
 tofu workspace new ${CLUSTER_NAME} || true
 export TF_WORKSPACE=${CLUSTER_NAME}

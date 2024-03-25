@@ -104,7 +104,7 @@ resource "null_resource" "validations" {
 }
 
 module "account-roles" {
-  source = "../modules/rosa/account-roles"
+  source = "../account-roles"
 
   account_role_prefix = local.account_role_prefix
   path                = var.path
@@ -112,7 +112,7 @@ module "account-roles" {
 }
 
 module "operator-roles" {
-  source = "../modules/rosa/oidc-provider-operator-roles"
+  source = "../oidc-provider-operator-roles"
 
   oidc_config          = "managed"
   operator_role_prefix = local.operator_role_prefix
@@ -126,7 +126,7 @@ data "external" "rosa" {
 }
 
 module "vpc" {
-  source     = "../modules/rosa/vpc"
+  source     = "../vpc"
   # This module doesn't really depend on these modules, but ensuring these are executed first lets us fail-fast if there
   # are issues with the roles and prevents us having to wait for a VPC to be provisioned before errors are reported
   depends_on = [module.account-roles, module.operator-roles]
@@ -178,7 +178,7 @@ resource "rhcs_cluster_rosa_hcp" "rosa_hcp_cluster" {
 #  cluster       = rhcs_cluster_rosa_hcp.rosa_hcp_cluster.name
 #  name          = "scaling"
 #  aws_node_pool = {
-#    instance_type = "m5.4xlarge"
+#    instance_type = var.instance_type
 #  }
 #  autoscaling = {
 #    enabled      = true,

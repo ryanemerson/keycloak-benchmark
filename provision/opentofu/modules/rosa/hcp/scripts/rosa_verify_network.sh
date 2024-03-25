@@ -7,7 +7,7 @@ fi
 
 if [ -z "$CLUSTER_NAME" ]; then echo "Variable CLUSTER_NAME needs to be set."; exit 1; fi
 
-CLUSTER=$(rosa describe cluster -c test1 -o json)
+CLUSTER=$(rosa describe cluster -c ${CLUSTER_NAME} -o json)
 REGION=$(echo ${CLUSTER} | jq -r '.region.id')
 SUBNETS=$(echo ${CLUSTER} | jq -r '.aws.subnet_ids | join(",")')
 rosa verify network --cluster ${CLUSTER_NAME}

@@ -17,5 +17,5 @@ if [ -z "$CLUSTER_NAME" ]; then echo "Variable CLUSTER_NAME needs to be set."; e
 # Cleanup might fail if Aurora/EFS hasn't been configured for the cluster. Ignore any failures and continue
 ./rds/aurora_delete_peering_connection.sh || true
 
-cd ${SCRIPT_DIR}/../opentofu/hcp
+cd ${SCRIPT_DIR}/../opentofu/modules/rosa/hcp
 ./../destroy.sh ${CLUSTER_NAME}
