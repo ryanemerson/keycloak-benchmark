@@ -1,21 +1,32 @@
 # OpenTofu
 This is the root directory for managing all OpenTofu state.
 
-## Initialization
-To create the local state files execute the following commands in this directory:
+## Modules
+All OpenTofu modules should be created in the `./modules` folder
 
-1. `tofu init`
+## State
+All root modules should use a [S3 Backend](https://developer.hashicorp.com/terraform/language/settings/backends/s3) to
+store state so that it's possible for centralised management of resources created by the team. A root module should add
+the following to their `providers.tf` file:
 
-## Centralized State
-The root OpenTofu file defines a remote [S3 backend](https://opentofu.org/docs/language/settings/backends/s3/), to ensure
-that all .state files are persisted to an S3 bucket. This allows for state to be shared amongst team members, as well as
-enabling our scheduler to remove no longer required resources.
+```terraform
+terraform {
+  backend "s3" {
+    bucket         = "kcb-tf-state"
+    key            = <TODO>
+    region         = "eu-west-1"
+    encrypt        = true
+    dynamodb_table = "app-state"
+  }
+}
+```
+The `key` field should be String that's unique to the module and relates to the module's functionality.
 
-To pull remote state to your local machine, execute:
+To pull remote state for a given module to your local machine, execute:
 
 - `tofu state pull`
 
-## Workspaces
+### Workspaces
 To isolate state created by different team members, [OpenTofu Workspaces](https://opentofu.org/docs/cli/workspaces/)
 should be used where appropriate. For example, if user specific ROSA clusters are required a dedicated workspace should
 be created for the cluster and any resources deployed to it.
@@ -27,3 +38,7 @@ Workspace CRUD:
 
 When an existing workspace is selected, you must then execute `tofu state pull` to ensure that you have the latest state
 on your local machine.
+
+### Cleaning up old resources
+The `./reaper.sh <dir>` script calls `tofu destroy` for all workspaces associated with the module directory passed to
+the script.

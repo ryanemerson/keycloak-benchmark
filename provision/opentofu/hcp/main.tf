@@ -173,7 +173,7 @@ resource "rhcs_cluster_rosa_hcp" "rosa_hcp_cluster" {
   wait_for_create_complete = true
 }
 
-# TODO FIX
+# TODO
 #resource "rhcs_hcp_machine_pool" "my_pool" {
 #  cluster       = rhcs_cluster_rosa_hcp.rosa_hcp_cluster.name
 #  name          = "scaling"
