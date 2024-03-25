@@ -62,11 +62,21 @@ variable "private_subnets_only" {
 
 variable "extra_tags" {
   description = "Extra tags to apply to AWS resources"
-  type = map
-  default = {}
+  type        = map
+  default     = {}
 }
 
 variable "openshift_version" {
   type    = string
   default = "4.14.5"
+}
+
+variable "instance_type" {
+  type    = string
+  default = "m5.4xlarge"
+}
+
+variable "replicas" {
+  type    = number
+  default = 2
 }

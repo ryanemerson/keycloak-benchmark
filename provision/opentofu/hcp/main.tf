@@ -107,16 +107,16 @@ module "account-roles" {
   source = "../modules/rosa/account-roles"
 
   account_role_prefix = local.account_role_prefix
-  token               = var.token
   path                = var.path
+  token               = var.token
 }
 
 module "operator-roles" {
   source = "../modules/rosa/oidc-provider-operator-roles"
 
+  oidc_config          = "managed"
   operator_role_prefix = local.operator_role_prefix
   path                 = var.path
-  oidc_config          = "managed"
 }
 
 data "external" "rosa" {
@@ -134,8 +134,8 @@ module "vpc" {
   cluster_name       = var.cluster_name
   region             = var.region
   subnet_azs         = local.azs
-  vpc_cidr           = data.external.rosa.result.cidr
   subnet_cidr_prefix = 28
+  vpc_cidr           = data.external.rosa.result.cidr
 }
 
 data "aws_caller_identity" "current" {
@@ -155,22 +155,22 @@ locals {
 }
 
 resource "rhcs_cluster_rosa_hcp" "rosa_hcp_cluster" {
-  name                   = var.cluster_name
-  cloud_region           = var.region
+  availability_zones     = local.azs
   aws_account_id         = data.aws_caller_identity.current.account_id
   aws_billing_account_id = data.aws_caller_identity.current.account_id
+  aws_subnet_ids         = module.vpc.cluster-subnets
+  cloud_region           = var.region
+  machine_cidr           = data.external.rosa.result.cidr
+  name                   = var.cluster_name
   properties             = merge(
     {
       rosa_creator_arn = data.aws_caller_identity.current.arn
     },
   )
-
-  aws_subnet_ids           = module.vpc.cluster-subnets
-  wait_for_create_complete = true
   sts                      = local.sts_roles
-  availability_zones       = local.azs
+  replicas                 = var.replicas
   version                  = var.openshift_version
-  machine_cidr             = data.external.rosa.result.cidr
+  wait_for_create_complete = true
 }
 
 # TODO FIX
@@ -197,6 +197,18 @@ resource "null_resource" "create_admin" {
   depends_on = [rhcs_cluster_wait.rosa_cluster]
   provisioner "local-exec" {
     command     = "./scripts/rosa_recreate_admin.sh"
+    environment = {
+      CLUSTER_NAME = var.cluster_name
+    }
+    interpreter = ["bash"]
+    working_dir = path.module
+  }
+}
+
+resource "null_resource" "rosa_verify_network" {
+  depends_on = [null_resource.create_admin]
+  provisioner "local-exec" {
+    command     = "./scripts/rosa_verify_network.sh"
     environment = {
       CLUSTER_NAME = var.cluster_name
     }
