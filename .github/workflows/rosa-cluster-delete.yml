@@ -45,6 +45,9 @@ jobs:
         with:
           clusterName: ${{ inputs.clusterName || format('gh-{0}', github.repository_owner) }}
 
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+
       - name: Delete a ROSA Cluster
         if: ${{ inputs.deleteAll == 'no' }}
         shell: bash
@@ -52,12 +55,15 @@ jobs:
         working-directory: provision/aws
         env:
           CLUSTER_NAME: ${{ inputs.clusterName || format('gh-{0}', github.repository_owner) }}
+          TF_VAR_token: ${{ secrets.ROSA_TOKEN }}
 
       - name: Delete all ROSA Clusters
         if: ${{ inputs.deleteAll == 'yes' }}
         shell: bash
         run: ./rosa_cluster_reaper.sh
         working-directory: provision/aws
+        env:
+          TF_VAR_token: ${{ secrets.ROSA_TOKEN }}
 
       - name: Archive ROSA logs
         uses: actions/upload-artifact@v4

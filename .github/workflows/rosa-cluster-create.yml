@@ -66,6 +66,9 @@ jobs:
           aws-default-region: ${{ vars.AWS_DEFAULT_REGION }}
           rosa-token: ${{ secrets.ROSA_TOKEN }}
 
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+
       - name: Create ROSA Cluster
         run: ./rosa_create_cluster.sh
         working-directory: provision/aws
@@ -74,6 +77,7 @@ jobs:
           CLUSTER_NAME: ${{ inputs.clusterName || format('gh-{0}', github.repository_owner) }}
           COMPUTE_MACHINE_TYPE: ${{ inputs.computeMachineType }}
           REPLICAS: ${{ inputs.replicas }}
+          TF_VAR_token: ${{ secrets.ROSA_TOKEN }}
 
       - name: Archive ROSA logs
         uses: actions/upload-artifact@v4
