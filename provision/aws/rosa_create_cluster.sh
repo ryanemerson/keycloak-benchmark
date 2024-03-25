@@ -51,6 +51,7 @@ if [[ "${SCALING_MACHINE_POOL}" != "scaling" ]]; then
 fi
 
 cd ${SCRIPT_DIR}
+./rosa_efs_create.sh
 ../infinispan/install_operator.sh
 
 # cryostat operator depends on certmanager operator
