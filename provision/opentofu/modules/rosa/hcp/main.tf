@@ -121,8 +121,11 @@ module "operator-roles" {
 
 data "external" "rosa" {
   program = [
-    "sh", "${path.module}/scripts/rosa_machine_cidr.sh"
+    "bash", "${path.module}/scripts/rosa_machine_cidr.sh"
   ]
+  query = {
+    cluster_name = var.cluster_name
+  }
 }
 
 module "vpc" {

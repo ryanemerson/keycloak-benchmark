@@ -5,7 +5,9 @@ if [[ "$RUNNER_DEBUG" == "1" ]]; then
   set -x
 fi
 
-if [ -z "$CLUSTER_NAME" ]; then echo "Variable CLUSTER_NAME needs to be set."; exit 1; fi
+eval "$(jq -r '@sh "CLUSTER_NAME=\(.cluster_name)"')"
+
+if [ -z "$CLUSTER_NAME" ]; then echo "'cluster_name' needs to be present in input JSON."; exit 1; fi
 
 # https://access.redhat.com/documentation/en-us/red_hat_openshift_service_on_aws/4/html/networking/cidr-range-definitions
 # Must not overlap with Pod CDR: 10.128.0.0/14
