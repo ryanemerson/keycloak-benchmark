@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::606671647913:oidc-provider/oidc.op1.openshiftapps.com/2a88796up6ojvf7425l1jbo76avsoeq4"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "oidc.op1.openshiftapps.com/2a88796up6ojvf7425l1jbo76avsoeq4:sub": [
+            "system:serviceaccount:openshift-cluster-csi-drivers:aws-efs-csi-driver-operator",
+            "system:serviceaccount:openshift-cluster-csi-drivers:aws-efs-csi-driver-controller-sa"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -47,8 +47,9 @@ cat << EOF > iam-trust.json
 }
 EOF
 
+ROLE_NAME="${CLUSTER_NAME}-aws-efs-csi-operator"
 ROLE_ARN=$(aws iam create-role \
-  --role-name "${CLUSTER_NAME}-aws-efs-csi-operator" \
+  --role-name ${ROLE_NAME} \
   --assume-role-policy-document file://iam-trust.json \
   --query "Role.Arn" \
   --output text
@@ -62,7 +63,7 @@ POLICY_ARN=$(aws iam create-policy \
 )
 
 aws iam attach-role-policy \
-  --role-name "${CLUSTER_NAME}-aws-efs-csi-operator" \
+  --role-name ${ROLE_NAME} \
   --policy-arn ${POLICY_ARN}
 
 cat <<EOF | oc apply -f -
@@ -78,12 +79,6 @@ stringData:
     role_arn = ${ROLE_ARN}
     web_identity_token_file = /var/run/secrets/openshift/serviceaccount/token
 EOF
-
-# if the CredentialsRequest was processed, manifests/openshift-cluster-csi-drivers-aws-efs-cloud-credentials-credentials.yaml file should be created
-# create credentials if present
-if [[ -f manifests/openshift-cluster-csi-drivers-aws-efs-cloud-credentials-credentials.yaml ]]; then
-    oc apply -f manifests/openshift-cluster-csi-drivers-aws-efs-cloud-credentials-credentials.yaml
-fi
 
 oc apply -f efs-csi-aws-com-cluster-csi-driver.yaml
 
@@ -172,12 +167,14 @@ while true; do
     echo -n '.'
 done
 
-for SUBNET in $(aws ec2 describe-subnets \
+SUBNETS=$(aws ec2 describe-subnets \
   --filters Name=vpc-id,Values=$VPC Name=tag:Name,Values='*-private*' \
   --query 'Subnets[*].{SubnetId:SubnetId}' \
   --output json \
   --region $AWS_REGION \
-  | jq -r '.[].SubnetId'); do \
+  | jq -r '.[].SubnetId'
+)
+for SUBNET in ${SUBNETS}; do \
     MOUNT_TARGET=$(aws efs describe-mount-targets --output json --file-system-id $EFS --region $AWS_REGION | jq -r '.MountTargets[] | .MountTargetId')
     if [[ -z "$MOUNT_TARGET" ]]; then
         MOUNT_TARGET=$(aws efs create-mount-target --file-system-id $EFS \
