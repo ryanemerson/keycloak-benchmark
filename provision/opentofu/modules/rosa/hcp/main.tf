@@ -7,6 +7,7 @@ data "aws_availability_zones" "available" {
 
 locals {
   azs                  = slice(data.aws_availability_zones.available.names, 0, 1)
+  kubeconfig           = "${path.module}/${var.cluster_name}"
   account_role_prefix  = var.cluster_name
   operator_role_prefix = var.cluster_name
   sts_roles            = {
@@ -94,11 +95,19 @@ resource "null_resource" "create_admin" {
   provisioner "local-exec" {
     command     = "./scripts/rosa_recreate_admin.sh"
     environment = {
+      KUBECONFIG   = local.kubeconfig
       CLUSTER_NAME = var.cluster_name
     }
     interpreter = ["bash"]
     working_dir = path.module
   }
+}
+
+resource "local_file" "kubeconfig" {
+  depends_on = [null_resource.create_admin]
+
+  filename = local.kubeconfig
+  source = local.kubeconfig
 }
 
 resource "null_resource" "rosa_verify_network" {
@@ -110,5 +119,64 @@ resource "null_resource" "rosa_verify_network" {
     }
     interpreter = ["bash"]
     working_dir = path.module
+  }
+}
+
+resource "kubernetes_manifest" "cert-manager-group" {
+  depends_on = [null_resource.create_admin]
+
+  manifest = {
+    "apiVersion" = "operators.coreos.com/v1"
+    "kind"       = "OperatorGroup"
+    "metadata"   = {
+      "name"      = "cert-manager-operator-1"
+      "namespace" = "cert-manager-operator"
+    }
+    "spec" = {
+      "targetNamespaces" = [
+        "cert-manager-operator"
+      ],
+      "upgradeStrategy": "Default"
+    }
+  }
+}
+
+resource "kubernetes_manifest" "cert-manager-subscription" {
+  depends_on = [null_resource.create_admin]
+
+  manifest = {
+    "apiVersion" = "operators.coreos.com/v1alpha1"
+    "kind"       = "Subscription"
+    "metadata" = {
+      "name"      = "cert-manager"
+      "namespace" = "cert-manager-operator"
+    }
+    "spec" = {
+      "channel"             = "stable-v1"
+      "installPlanApproval" = "Automatic"
+      "name"                = "openshift-cert-manager-operator"
+      "source"              = "redhat-operators"
+      "sourceNamespace"     = "openshift-marketplace"
+    }
+  }
+}
+
+resource "kubernetes_manifest" "cryostat-subscription" {
+  depends_on = [null_resource.create_admin]
+
+  manifest = {
+    "apiVersion" = "operators.coreos.com/v1alpha1"
+    "kind"       = "Subscription"
+    "metadata" = {
+      "name"      = "cryostat-operator"
+      "namespace" = "openshift-operators"
+    }
+    "spec" = {
+      "channel"             = "stable"
+      "installPlanApproval" = "Automatic"
+      "name"                = "cryostat-operator"
+      "source"              = "redhat-operators"
+      "sourceNamespace"     = "openshift-marketplace"
+    }
   }
 }

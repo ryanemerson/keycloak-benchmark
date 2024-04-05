@@ -7,3 +7,7 @@ output "input_region" {
   value       = var.region
   description = "The region AWS resources created in."
 }
+
+output "kubeconfig" {
+  value = abspath(local.kubeconfig)
+}

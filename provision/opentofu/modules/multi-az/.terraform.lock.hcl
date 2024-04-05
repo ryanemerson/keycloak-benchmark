@@ -36,6 +36,41 @@ provider "registry.opentofu.org/hashicorp/external" {
   ]
 }
 
+provider "registry.opentofu.org/hashicorp/kubernetes" {
+  version     = "2.27.0"
+  constraints = "2.27.0"
+  hashes = [
+    "h1:Jtbdvbq8kIXUENtH3tVwgcjHqbuYp1pGfg4gFocY+e4=",
+    "zh:1146f53fb39fd4bcea5574303c4871001a97d7891f65a60a4ecbc64da2a90d75",
+    "zh:1f7e3dc0dbb854f56a0f5ba3c50588272984ae9775da027c3c7f32cb6d8245b0",
+    "zh:2166f7fdade75266658603280bc822edab848e52a674340485847dde1c5d9324",
+    "zh:21a97530857330d2013aa66fb7afebb44fe4a5543418d0a3ca93750acd11fea5",
+    "zh:2d4b9fea7e99750647e1cd8df9a67cba45905825867dd19ab01411dad6b8c6fd",
+    "zh:de30e92e638b95e56dbb2232cb9a6f6a69346ecb3644965e9be715eaf29f22ff",
+    "zh:f4ae951c9add4349a498f44c3f5768cbaf7a966392a0e7632de288889e7cd5d9",
+    "zh:f54ecb1917dfa198933d72632ea6f0aa4da3ead070d6b9765ec1d3b7da60e827",
+    "zh:fba8a2f192eb5fe248708b9037db046e0d9176e7c54c6edc6f6aa55d50474082",
+    "zh:fe525956f3e54f0bbd2891a6abad1f807b4763b8dc734d810e223876741fefa3",
+  ]
+}
+
+provider "registry.opentofu.org/hashicorp/local" {
+  version = "2.5.1"
+  hashes = [
+    "h1:GgW5qncKu4KnXLE1ZYv5iwmhSYtTNzsOvJAOQIyFR7E=",
+    "zh:031c2c2070672b7e78e0aa15560839278dc57fe7cf1e58a617ac13c67b31d5fb",
+    "zh:1ef64ea4f8382cd538a76f3d319f405d18130dc3280f1c16d6aaa52a188ecaa4",
+    "zh:422ce45691b2f384dbd4596fdc8209d95cb43d85a82aaa0173089d38976d6e96",
+    "zh:7415fbd8da72d9363ba55dd8115837714f9534f5a9a518ec42268c2da1b9ed2f",
+    "zh:92aa22d071339c8ef595f18a9f9245c287266c80689f5746b26e10eaed04d542",
+    "zh:9cd0d99f5d3be835d6336c19c4057af6274e193e677ecf6370e5b0de12b4aafe",
+    "zh:a8c1525b389be5809a97f02aa7126e491ba518f97f57ed3095a3992f2134bb8f",
+    "zh:b336fa75f72643154b07c09b3968e417a41293358a54fe03efc0db715c5451e6",
+    "zh:c66529133599a419123ad2e42874afbd9aba82bd1de2b15cc68d2a1e665d4c8e",
+    "zh:c7568f75ba6cb7c3660b69eaab8b0e4278533bd9a7a4c33ee6590cc7e69743ea",
+  ]
+}
+
 provider "registry.opentofu.org/hashicorp/null" {
   version     = "3.2.2"
   constraints = ">= 3.0.0, ~> 3.2"
