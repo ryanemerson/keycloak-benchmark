@@ -8,7 +8,7 @@ data "external" "rosa" {
 }
 
 module rosa_cluster_a {
-  source = "../../rosa/hcp"
+  source = "../rosa/hcp"
 
   cluster_name = "${var.cluster_prefix}-a"
   openshift_version = var.openshift_version
@@ -21,7 +21,7 @@ module rosa_cluster_a {
 }
 
 module rosa_cluster_b {
-  source = "../../rosa/hcp"
+  source = "../rosa/hcp"
 
   cluster_name = "${var.cluster_prefix}-b"
   openshift_version = var.openshift_version
@@ -32,6 +32,3 @@ module rosa_cluster_b {
   subnet_cidr_prefix = 28
   vpc_cidr = data.external.rosa.result.cidr_b
 }
-
-# TODO create machine pool config for each cluster
-#rosa create machinepool -c "${CLUSTER_NAME}" --instance-type m5.4xlarge --max-replicas 10 --min-replicas 1 --name scaling --enable-autoscaling

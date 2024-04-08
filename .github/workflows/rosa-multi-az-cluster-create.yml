@@ -55,22 +55,53 @@ jobs:
   cluster:
     if: ${{ inputs.createCluster }}
     needs: meta
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup ROSA CLI
+        uses: ./.github/actions/rosa-cli-setup
+        with:
+          aws-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-default-region: ${{ vars.AWS_DEFAULT_REGION }}
+          rosa-token: ${{ secrets.ROSA_TOKEN }}
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+
+      - name: Create ROSA Clusters
+        run: ./rosa_create_multi_az_clusters.sh
+        working-directory: provision/aws
+        env:
+          CLUSTER_PREFIX: ${{ needs.meta.outputs.clusterPrefix }}
+          COMPUTE_MACHINE_TYPE: ${{ inputs.computeMachineType }}
+          REGION: ${{ needs.meta.outputs.region }}
+          REPLICAS: ${{ inputs.replicas }}
+          TF_VAR_rhcs_token: ${{ secrets.ROSA_TOKEN }}
+
+  cluster-dependencies:
+    if: ${{ inputs.createCluster }}
+    needs: cluster
     strategy:
       matrix:
         availabilityZone: [ a, b ]
-      # It is currently not safe to run the cluster creation in parallel, as both might pick the same CIDR, which then leads to conflicts
-      max-parallel: 1
-    uses: ./.github/workflows/rosa-cluster-create.yml
-    with:
-      clusterName: ${{ needs.meta.outputs.clusterPrefix }}-${{ matrix.availabilityZone }}
-      region: ${{ needs.meta.outputs.region }}
-      availabilityZones: ${{ needs.meta.outputs.region }}${{ matrix.availabilityZone }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install ROSA Cluster dependencies
+        run: ./rosa_install_dependencies.sh
+        working-directory: provision/aws
 
   deploy-keycloak:
     runs-on: ubuntu-latest
     if: ${{ (always() && needs.cluster.result == 'skipped' && !inputs.createCluster) || success()}}
-    needs: [cluster]
+    needs: cluster-dependencies
 
     steps:
       - name: Checkout repository
