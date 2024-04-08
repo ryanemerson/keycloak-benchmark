@@ -49,19 +49,19 @@ variable "subnet_cidr_prefix" {
 }
 
 variable "openshift_version" {
-  type    = string
-  default = "4.15.3"
+  type     = string
+  default  = "4.15.3"
   nullable = false
 }
 
 variable "instance_type" {
-  type    = string
-  default = "m5.4xlarge"
+  type     = string
+  default  = "m5.4xlarge"
   nullable = false
 }
 
 variable "replicas" {
-  type    = number
-  default = 2
+  type     = number
+  default  = 2
   nullable = false
 }

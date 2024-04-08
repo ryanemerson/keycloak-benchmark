@@ -8,6 +8,6 @@ output "input_region" {
   description = "The region AWS resources created in."
 }
 
-output "kubeconfig" {
-  value = abspath(local.kubeconfig)
+output "kube_context" {
+  value = data.external.create_admin.result.kube_context
 }

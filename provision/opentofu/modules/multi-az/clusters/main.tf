@@ -3,12 +3,12 @@ data "external" "rosa" {
     "bash", "${path.module}/scripts/rosa_machine_cidr.sh"
   ]
   query = {
-    cluster_name = var.cluster_prefix
+    CLUSTER_PREFIX = var.cluster_prefix
   }
 }
 
 module rosa_cluster_a {
-  source = "../rosa/hcp"
+  source = "../../rosa/hcp"
 
   cluster_name = "${var.cluster_prefix}-a"
   openshift_version = var.openshift_version
@@ -21,7 +21,7 @@ module rosa_cluster_a {
 }
 
 module rosa_cluster_b {
-  source = "../rosa/hcp"
+  source = "../../rosa/hcp"
 
   cluster_name = "${var.cluster_prefix}-b"
   openshift_version = var.openshift_version
@@ -33,22 +33,5 @@ module rosa_cluster_b {
   vpc_cidr = data.external.rosa.result.cidr_b
 }
 
-#module rosa_dependencies_a {
-#  source = "../openshift-dependencies"
-#
-#  providers {
-#    kubernetes = {
-#      config_path = module.rosa_cluster_a.kubeconfig
-#    }
-#  }
-#}
-#
-#module rosa_dependencies_b {
-#  source = "../openshift-dependencies"
-#
-#  providers {
-#    kubernetes = {
-#      config_path = module.rosa_cluster_b.kubeconfig
-#    }
-#  }
-#}
+# TODO create machine pool config for each cluster
+#rosa create machinepool -c "${CLUSTER_NAME}" --instance-type m5.4xlarge --max-replicas 10 --min-replicas 1 --name scaling --enable-autoscaling
