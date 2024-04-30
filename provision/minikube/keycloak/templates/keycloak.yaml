@@ -102,6 +102,8 @@ spec:
     # end::keycloak-queue-size[]
     - name: log-console-output
       value: json
+    - name: log-level
+      value: INFO,org.keycloak.connections.infinispan.InfinispanMultiSiteXSiteCheckProvider:DEBUG
     - name: metrics-enabled # <5>
       value: 'true'
     - name: http-pool-max-threads # <6>
