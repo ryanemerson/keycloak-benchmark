@@ -161,3 +161,4 @@ jobs:
           MULTI_AZ: "true"
           KC_REPOSITORY: ${{ inputs.keycloakRepository }}
           KC_BRANCH: ${{ inputs.keycloakBranch }}
+          KC_USE_AWS_JDBC_WRAPPER: "false"
