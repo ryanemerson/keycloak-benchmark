@@ -154,7 +154,7 @@ spec:
 {{ end }}
   http:
     tlsSecret: keycloak-tls-secret
-  instances: {{ .Values.instances }}
+  instances: 1
   # end::keycloak[]
   unsupported:
     podTemplate:
@@ -232,7 +232,7 @@ spec:
                   -XX:MaxMetaspaceSize={{ .Values.metaspaceMaxMB }}m
 {{- end }}
 {{- if .Values.jvmDebug }}
-                  -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8787
+                  -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8787 -Dquarkus.vertx.max-event-loop-execute-time=10h
 {{- end }}
 {{- if .Values.otel }}
                   -javaagent:/otel/opentelemetry-javaagent-{{ .Values.otelVersion }}.jar
@@ -260,10 +260,15 @@ spec:
             #   exec:
             #     command:
             #       - 'true'
-            # livenessProbe:
-            #   exec:
-            #     command:
-            #       - 'true'
+            livenessProbe:
+              failureThreshold: 1000
+              httpGet:
+                path: /health/live
+                port: 9000
+                scheme: HTTPS
+              periodSeconds: 3600
+              successThreshold: 1
+              timeoutSeconds: 999
             volumeMounts:
               {{- range $path, $size := .Files.Glob "providers/**" }}
               {{- $name := base $path }}
