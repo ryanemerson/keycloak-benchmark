@@ -16,7 +16,7 @@ public class SessionExpirationTest extends AbstractCrossDCTest {
     @Test
     public void sessionExpirationTest() throws IOException, URISyntaxException, InterruptedException {
         // set user/client session lifespan to 5s
-        RealmRepresentation realm = LOAD_BALANCER_KEYCLOAK.adminClient().realm(REALM_NAME).toRepresentation();
+        RealmRepresentation realm = DC_2.kc().adminClient().realm(REALM_NAME).toRepresentation();
         realm.setSsoSessionMaxLifespan(5);
         realm.setClientSessionMaxLifespan(5);
         LOAD_BALANCER_KEYCLOAK.adminClient().realm(REALM_NAME).update(realm);
