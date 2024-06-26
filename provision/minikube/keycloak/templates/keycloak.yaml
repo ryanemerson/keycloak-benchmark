@@ -78,6 +78,8 @@ spec:
   # tag::keycloak-ispn[]
   additionalOptions:
   # end::keycloak-ispn[]
+    - name: log-level
+      value: "INFO,org.keycloak.models:trace"
     - name: http-metrics-histograms-enabled
       value: 'true'
     - name: http-metrics-slos
@@ -106,8 +108,6 @@ spec:
     - name: http-max-queued-requests
       value: "1000"
     # end::keycloak-queue-size[]
-    - name: log-console-output
-      value: json
     - name: metrics-enabled # <5>
       value: 'true'
     - name: http-pool-max-threads # <6>
