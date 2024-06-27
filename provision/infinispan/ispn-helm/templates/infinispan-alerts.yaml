@@ -18,6 +18,10 @@ metadata:
 spec:
   route:
     receiver: default
+    groupBy:
+      - accelerator
+    groupInterval: 30s
+    groupWait: 0
     matchers:
       - matchType: =
         name: alertname
