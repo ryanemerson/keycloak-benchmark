@@ -19,6 +19,8 @@ cacheDefaults:
   txMode: NON_XA
   # OPTIMISTIC|PESSIMISTIC
   txLockMode: PESSIMISTIC
+  takeOfflineAfterFailures: 1
+  takeOfflineMinWait: 0
 caches:
   sessions:
     owners: 1

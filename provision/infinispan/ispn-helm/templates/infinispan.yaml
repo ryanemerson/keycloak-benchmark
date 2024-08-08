@@ -165,6 +165,9 @@ spec:
             strategy: {{ $config.crossSiteMode | default $.Values.cacheDefaults.crossSiteMode | quote }} # <3>
             timeout: {{ $config.xsiteRemoteTimeout | default $.Values.cacheDefaults.xsiteRemoteTimeout | quote }}
             failurePolicy: {{ $config.xsiteFailurePolicy | default $.Values.cacheDefaults.xsiteFailurePolicy | quote }}
+            takeOffline:
+              afterFailures: {{ $config.takeOfflineAfterFailures | default $.Values.cacheDefaults.takeOfflineAfterFailures | quote }}
+              minWait: {{ $config.takeOfflineMinWait | default $.Values.cacheDefaults.takeOfflineMinWait | quote }}
             stateTransfer:
               chunkSize: "16"
               {{- if eq ($config.crossSiteMode | default $.Values.cacheDefaults.crossSiteMode) "ASYNC"}}
