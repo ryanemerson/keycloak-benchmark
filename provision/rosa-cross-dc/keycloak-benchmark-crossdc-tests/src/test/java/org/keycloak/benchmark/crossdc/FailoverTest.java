@@ -8,10 +8,12 @@ import static org.keycloak.connections.infinispan.InfinispanConnectionProvider.U
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.infinispan.commons.util.ByRef;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,8 @@ import org.keycloak.benchmark.crossdc.client.DatacenterInfo;
 import org.keycloak.benchmark.crossdc.junit.tags.ActiveActive;
 import org.keycloak.benchmark.crossdc.junit.tags.ActivePassive;
 import org.keycloak.benchmark.crossdc.util.K8sUtils;
+import org.keycloak.connections.infinispan.InfinispanConnectionProvider;
+import org.keycloak.representations.idm.RealmRepresentation;
 
 import software.amazon.awssdk.services.cloudwatch.model.StateValue;
 
@@ -46,6 +50,13 @@ public class FailoverTest extends AbstractCrossDCTest {
             scaleGossipRouter(DC_2, 1);
             // Wait for JGroups site view to contain both sites
             waitForSitesViewCount(2);
+            // Bring site's back online after split-brain heal
+            var dc1Site = DC_1.ispn().getSiteName();
+            var dc2Site = DC_2.ispn().getSiteName();
+            for (String cacheName: InfinispanConnectionProvider.CLUSTERED_CACHE_NAMES) {
+                DC_1.ispn().bringSiteOnline(cacheName, dc2Site);
+                DC_2.ispn().bringSiteOnline(cacheName, dc1Site);
+            }
             // Ensure that the SiteOffline alert is no longer firing
             eventually(
                   () -> String.format("Alert '%s' still firing on DC", SITE_OFFLINE_ALERT),
@@ -97,7 +108,13 @@ public class FailoverTest extends AbstractCrossDCTest {
 
     @Test
     @ActiveActive
-    public void ensureAcceleratorUpdatedOnSplitBrainTest() {
+    public void ensureAcceleratorUpdatedOnSplitBrainTest() throws IOException, URISyntaxException, InterruptedException {
+        String code = LOAD_BALANCER_KEYCLOAK.usernamePasswordLogin(REALM_NAME, USERNAME, MAIN_PASSWORD, CLIENTID);
+        Map<String, Object> tokensMap = LOAD_BALANCER_KEYCLOAK.exchangeCode(REALM_NAME, CLIENTID, CLIENT_SECRET, 200, code);
+        LOAD_BALANCER_KEYCLOAK.logout(REALM_NAME, (String) tokensMap.get("id_token"), CLIENTID);
+        var ispnSiteNames = DC_1.ispn().getSiteView();
+        assertEquals(2, ispnSiteNames.size());
+
         // Minus one minute to allow for difference in local and AWS clocks
         var startTime = Instant.now().minusSeconds(60);
         var acceleratorMeta = AWSClient.getAcceleratorMeta(DC_1.getLoadbalancerURL());
@@ -127,12 +144,29 @@ public class FailoverTest extends AbstractCrossDCTest {
         ByRef.Long count = new ByRef.Long(0);
         var expectedInvocations = lambdaInvocationsStart + 2;
         eventually(
-              () -> String.format("Expected %d Lambda invocations, got %d", expectedInvocations, count.get()),
+              () -> String.format("Expected at least %d Lambda invocations, got %d", expectedInvocations, count.get()),
               () -> {
                   count.set(AWSClient.getLambdaInvocationCount(acceleratorMeta.name(), region, startTime));
-                  return count.get() == expectedInvocations;
+                  return count.get() >= expectedInvocations;
               },
               10, TimeUnit.MINUTES
+        );
+
+        // Determine which Infinispan site is still active in the Accelerator
+        var onlineSites = getInfinispanSiteNamesInAccelerator();
+        assertEquals(onlineSites.size(), 1);
+        var offlineSites = new HashSet<>(ispnSiteNames);
+        offlineSites.removeAll(onlineSites);
+        assertEquals(1, offlineSites.size());
+        var offlineSite = offlineSites.iterator().next();
+
+        // Attempt to login
+        // Forces authenticationSessions offline
+        LOAD_BALANCER_KEYCLOAK.usernamePasswordLogin(REALM_NAME, USERNAME, MAIN_PASSWORD, CLIENTID);
+        // TODO how to ensure all other caches are offline?
+        eventually(
+              () -> String.format("Expected site '%s' to be marked as offline", offlineSite),
+              () -> DC_1.ispn().isSiteOffline(offlineSite)
         );
     }
 

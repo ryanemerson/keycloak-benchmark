@@ -179,12 +179,29 @@ public class ExternalInfinispanClient implements InfinispanClient<InfinispanClie
 
     }
 
-    public List<String> getSiteView() {
+    public String getSiteName() {
+        return serverInfo(restClient)
+              .at("local_site")
+              .asString();
+    }
+
+    public Set<String> getSiteView() {
         return serverInfo(restClient)
                 .at("sites_view")
                 .asJsonList().stream()
                 .map(Json::asString)
-                .toList();
+                .collect(Collectors.toSet());
+    }
+
+    public boolean isSiteOffline(String site) {
+        try (var rsp = awaitAndCheckOkStatus(restClient.container().backupStatus(site))) {
+            var json = Json.read(rsp.body());
+            return json.at("status").asString().equals("offline");
+        }
+    }
+
+    public void bringSiteOnline(String cacheName, String site) {
+        try (var ignore = awaitAndCheckOkStatus(restClient.cache(cacheName).bringSiteOnline(site))) {}
     }
 
     public static final X509ExtendedTrustManager TRUST_ALL_MANAGER = new X509ExtendedTrustManager() {
