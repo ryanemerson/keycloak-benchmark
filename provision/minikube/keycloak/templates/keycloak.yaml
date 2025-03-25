@@ -133,6 +133,8 @@ spec:
       value: "1000"
     # end::keycloak-queue-size[]
     # tag::keycloak[]
+    - name: log-level
+      value: "INFO,org.keycloak.transaction:TRACE"
     - name: log-console-output
       value: json
     - name: metrics-enabled # <5>
