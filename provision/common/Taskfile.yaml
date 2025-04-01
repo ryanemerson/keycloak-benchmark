@@ -176,7 +176,7 @@ tasks:
       - mvnw
     dir: ../..
     cmds:
-      - bash -c "./mvnw -B -am -pl dataset clean install -DskipTests"
+#      - bash -c "./mvnw -B -am -pl dataset clean install -DskipTests"
     sources:
       - ../../pom.xml
       - dataset/pom.xml
