@@ -24,7 +24,6 @@ declare -A SERVICES=( \
  ["prometheus.${HOST}"]="" \
  ["jaeger.${HOST}"]="api/services" \
  ["kubebox.${HOST}"]="" \
- ["cryostat.${HOST}"]="" \
  ["sqlpad.${HOST}"]="" \
  )
 
