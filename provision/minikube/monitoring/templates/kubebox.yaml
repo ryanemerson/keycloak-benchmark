@@ -60,7 +60,7 @@ spec:
       serviceAccountName: kubebox
       containers:
         - image: astefanutti/kubebox:server
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           name: kubebox
           ports:
             - containerPort: 8080

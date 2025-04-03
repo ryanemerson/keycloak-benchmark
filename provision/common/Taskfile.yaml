@@ -201,10 +201,10 @@ tasks:
   keycloak-cli-download:
     dir: ..
     cmds:
-      - mkdir -p keycloak-cli
-      - rm -f keycloak-cli/*.zip
-      - >
-        curl -L -f https://github.com/keycloak/keycloak/releases/download/nightly/keycloak-999.0.0-SNAPSHOT.zip -o keycloak-cli/keycloak.zip
+#      - mkdir -p keycloak-cli
+#      - rm -f keycloak-cli/*.zip
+#      - >
+#        curl -L -f https://github.com/keycloak/keycloak/releases/download/nightly/keycloak-999.0.0-SNAPSHOT.zip -o keycloak-cli/keycloak.zip
     status:
       - find keycloak-cli/keycloak.zip -mtime +1 -exec false {} +
     sources:
@@ -249,10 +249,11 @@ tasks:
     dir: ".task"
     cmds:
       - rm -rf "keycloak-grafana-dashboard" || true
-      - git clone --branch "{{.KC_GRAFANA_DASHBOARDS_BRANCH}}" "{{.KC_GRAFANA_DASHBOARDS_REPOSITORY}}" "keycloak-grafana-dashboard" --depth 1
-      - git -C "keycloak-grafana-dashboard" checkout "{{.KC_GRAFANA_DASHBOARDS_BRANCH}}"
-      - git -C "keycloak-grafana-dashboard" pull
+#      - git clone --branch "{{.KC_GRAFANA_DASHBOARDS_BRANCH}}" "{{.KC_GRAFANA_DASHBOARDS_REPOSITORY}}" "keycloak-grafana-dashboard" --depth 1
+#      - git -C "keycloak-grafana-dashboard" checkout "{{.KC_GRAFANA_DASHBOARDS_BRANCH}}"
+#      - git -C "keycloak-grafana-dashboard" pull
       - |
+        cp -r /home/remerson/Workspace/keycloak/keycloak-benchmark/keycloak-grafana-dashboard .
         cd keycloak-grafana-dashboard/dashboards
         for F in *; do
           cp ${F} copy.json;

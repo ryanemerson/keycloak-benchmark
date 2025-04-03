@@ -214,9 +214,7 @@ spec:
       spec:
         containers:
           -
-{{ if hasPrefix "localhost/" .Values.keycloakImage }}
             imagePullPolicy: Never
-{{ end }}
             env:
               # We want to have an externally provided username and password, therefore, we override those two environment variables
               - name: KC_BOOTSTRAP_ADMIN_USERNAME

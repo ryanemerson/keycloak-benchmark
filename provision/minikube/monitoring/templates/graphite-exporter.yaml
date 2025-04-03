@@ -62,7 +62,7 @@ spec:
         - args:
             - --graphite.mapping-config=/etc/graphite/graphite_mapping.yaml
           image: mirror.gcr.io/prom/graphite-exporter:latest
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           startupProbe:
             httpGet:
               path: /

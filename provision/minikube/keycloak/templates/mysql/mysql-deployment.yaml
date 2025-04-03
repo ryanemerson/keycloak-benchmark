@@ -22,7 +22,7 @@ spec:
         app: mysql
     spec:
       containers:
-        - imagePullPolicy: Always
+        - imagePullPolicy: Never
           env:
             - name: MYSQL_PASSWORD
               value: secret99

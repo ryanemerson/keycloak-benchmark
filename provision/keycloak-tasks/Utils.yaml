@@ -140,10 +140,10 @@ tasks:
       CURRENT_PREFIX: '{{ ternary .CUSTOM_OPERATOR_PREFIX .EXTERNAL_OPERATOR_PREFIX (hasPrefix "image-registry.openshift-image-registry.svc:5000" .OPERATOR_IMAGE) }}'
     cmds:
       - KUBECONFIG="{{.KUBECONFIG}}" kubectl create namespace "{{.NAMESPACE}}" || true
-      - KUBECONFIG="{{.KUBECONFIG}}" kubectl -n {{.NAMESPACE}} apply -f {{.CURRENT_PREFIX}}keycloaks.k8s.keycloak.org-v1.yml
-      - KUBECONFIG="{{.KUBECONFIG}}" kubectl -n {{.NAMESPACE}} apply -f {{.CURRENT_PREFIX}}keycloakrealmimports.k8s.keycloak.org-v1.yml
+      - KUBECONFIG="{{.KUBECONFIG}}" kubectl -n {{.NAMESPACE}} apply -f /home/remerson/Workspace/keycloak/keycloak-benchmark/keycloaks.k8s.keycloak.org-v1.yml
+      - KUBECONFIG="{{.KUBECONFIG}}" kubectl -n {{.NAMESPACE}} apply -f /home/remerson/Workspace/keycloak/keycloak-benchmark/keycloakrealmimports.k8s.keycloak.org-v1.yml
       - KUBECONFIG="{{.KUBECONFIG}}" kubectl -n {{.NAMESPACE}} delete deployment/keycloak-operator || true
-      - KUBECONFIG="{{.KUBECONFIG}}" kubectl -n {{.NAMESPACE}} apply -f {{.CURRENT_PREFIX}}kubernetes.yml
+      - KUBECONFIG="{{.KUBECONFIG}}" kubectl -n {{.NAMESPACE}} apply -f /home/remerson/Workspace/keycloak/keycloak-benchmark/kc-operator-no-pull.yml
       - task: patch-keycloak-operator-image
         vars:
           NAMESPACE: "{{.NAMESPACE}}"

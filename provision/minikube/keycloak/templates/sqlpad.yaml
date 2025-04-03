@@ -59,7 +59,7 @@ spec:
             - name: SQLPAD_QUERY_RESULT_MAX_ROWS
               value: '100000'
           image: mirror.gcr.io/sqlpad/sqlpad:6.11.0
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           startupProbe:
             httpGet:
               path: /

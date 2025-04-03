@@ -22,7 +22,7 @@ spec:
         app: postgres
     spec:
       containers:
-        - imagePullPolicy: Always
+        - imagePullPolicy: Never
           env:
             - name: POSTGRES_PASSWORD
               value: secret99

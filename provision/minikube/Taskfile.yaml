@@ -70,9 +70,9 @@ tasks:
       - common:env
     cmds:
       - kubectl create namespace monitoring || true
-      - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-      - helm repo update
-      - helm upgrade --install prometheus prometheus-community/kube-prometheus-stack --version 69.7.3 -f monitoring.yaml --set grafana."grafana\.ini".server.root_url=https://grafana.{{.IP}}.nip.io --set prometheus.prometheusSpec.retention={{.KB_RETENTION}}
+#      - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#      - helm repo update
+      - helm upgrade --install prometheus /home/remerson/Workspace/keycloak/keycloak-benchmark/kube-prometheus-stack --version 67.9.0 -f monitoring.yaml --set grafana."grafana\.ini".server.root_url=https://grafana.{{.IP}}.nip.io --set prometheus.prometheusSpec.retention={{.KB_RETENTION}}
     sources:
       - monitoring.yaml
       - .task/subtask-{{.TASK}}.yaml
@@ -99,10 +99,9 @@ tasks:
       - prometheus
       - common:env
     cmds:
-      - helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
-      - helm repo update
+#      - helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
       - >
-        helm upgrade --install jaeger jaegertracing/jaeger --version 3.4.0 -n monitoring -f ../minikube/jaeger/values.yaml
+        helm upgrade --install jaeger /home/remerson/Workspace/keycloak/keycloak-benchmark/jaeger --version 3.4.0 -n monitoring -f ../minikube/jaeger/values.yaml
         --set allInOne.extraEnv[0].value={{.KB_RETENTION}}
     sources:
       - jaeger/**/*.*
@@ -129,11 +128,10 @@ tasks:
       - common:env
       - prometheus
     cmds:
-      - helm repo add grafana https://grafana.github.io/helm-charts
-      - helm repo update
+#      - helm repo add grafana https://grafana.github.io/helm-charts
       # A loki update might fail as a stateful set can't be updated. If that fails, uninstall and re-install.
       - >
-        bash -c "helm upgrade --install loki grafana/loki --version 6.27.0 -n monitoring -f loki.yaml --set tableManager.retention_period={{.KB_RETENTION}}
+        bash -c "helm upgrade --install loki /home/remerson/Workspace/keycloak/keycloak-benchmark/loki --version 6.27.0 -n monitoring -f loki.yaml --set tableManager.retention_period={{.KB_RETENTION}}
         || (helm delete loki -n monitoring && helm upgrade --install loki grafana/loki --version 6.27.0 -n monitoring -f loki.yaml --set tableManager.retention_period={{.KB_RETENTION}})"
     sources:
       - loki.yaml
@@ -145,9 +143,8 @@ tasks:
       - common:split
       - prometheus
     cmds:
-      - helm repo add grafana https://grafana.github.io/helm-charts
-      - helm repo update
-      - helm upgrade --install promtail grafana/promtail --version 6.16.6 -n monitoring -f promtail.yaml
+#      - helm repo add grafana https://grafana.github.io/helm-charts
+      - helm upgrade --install promtail /home/remerson/Workspace/keycloak/keycloak-benchmark/promtail --version 6.16.6 -n monitoring -f promtail.yaml
     sources:
       - promtail.yaml
       - .task/subtask-{{.TASK}}.yaml
@@ -195,9 +192,9 @@ tasks:
     cmds:
       - >
       - kubectl create namespace keycloak || true
-      - kubectl -n keycloak apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/refs/tags/{{.KC_OPERATOR_TAG}}/kubernetes/keycloaks.k8s.keycloak.org-v1.yml
-      - kubectl -n keycloak apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/refs/tags/{{.KC_OPERATOR_TAG}}/kubernetes/keycloakrealmimports.k8s.keycloak.org-v1.yml
-      - kubectl -n keycloak apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/refs/tags/{{.KC_OPERATOR_TAG}}/kubernetes/kubernetes.yml || (kubectl -n keycloak delete deployment/keycloak-operator && kubectl -n keycloak apply -f https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/refs/tags/{{.KC_OPERATOR_TAG}}/kubernetes/kubernetes.yml)
+      - kubectl -n keycloak apply -f /home/remerson/Workspace/keycloak/keycloak-benchmark/keycloaks.k8s.keycloak.org-v1.yml
+      - kubectl -n keycloak apply -f /home/remerson/Workspace/keycloak/keycloak-benchmark/keycloakrealmimports.k8s.keycloak.org-v1.yml
+      - kubectl -n keycloak apply -f /home/remerson/Workspace/keycloak/keycloak-benchmark/kc-operator-no-pull.yml || (kubectl -n keycloak delete deployment/keycloak-operator && kubectl -n keycloak apply -f /home/remerson/Workspace/keycloak/keycloak-benchmark/kc-operator-no-pull.yml)
       - >
         helm upgrade --install keycloak
         --set hostname={{.IP}}.nip.io
@@ -239,9 +236,9 @@ tasks:
       - ./isup.sh
       # remove all no longer used images from minikube to preserve disk space
       # "minikube ssh" stopped to work on Fedora / lead to a timeout, while direct ssh still works
-      - bash -c 'ssh docker@$(minikube ip) -i $(minikube ssh-key) -o StrictHostKeyChecking=no docker container prune -f'
-      - bash -c 'ssh docker@$(minikube ip) -i $(minikube ssh-key) -o StrictHostKeyChecking=no docker image prune -f'
-      - bash -c 'ssh docker@$(minikube ip) -i $(minikube ssh-key) -o StrictHostKeyChecking=no docker volume prune -f'
+#      - bash -c 'ssh docker@$(minikube ip) -i $(minikube ssh-key) -o StrictHostKeyChecking=no docker container prune -f'
+#      - bash -c 'ssh docker@$(minikube ip) -i $(minikube ssh-key) -o StrictHostKeyChecking=no docker image prune -f'
+#      - bash -c 'ssh docker@$(minikube ip) -i $(minikube ssh-key) -o StrictHostKeyChecking=no docker volume prune -f'
     sources:
       - keycloak/**/*.*
       - .task/subtask-{{.TASK}}.yaml
