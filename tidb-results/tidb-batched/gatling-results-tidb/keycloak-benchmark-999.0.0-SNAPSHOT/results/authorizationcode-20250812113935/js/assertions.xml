@@ -1,0 +1,8 @@
+<testsuite name="keycloak.scenario.authentication.AuthorizationCode" tests="2" errors="0" failures="2" time="0">
+  <testcase name="Global: percentage of failed events is less than or equal to 0.001" status="false" time="0">
+  <failure type="Global: percentage of failed events is less than or equal to 0.001">Actual value: 11.376565287231871</failure>
+</testcase>
+<testcase name="Global: mean of response time is less than or equal to 300.0" status="false" time="0">
+  <failure type="Global: mean of response time is less than or equal to 300.0">Actual value: 8326.0</failure>
+</testcase>
+</testsuite>
