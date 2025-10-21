@@ -7,7 +7,7 @@ replicas: 3
 # When 'useCustomImage' is 'false' then operator defaults will be used.
 # Values of 'image' and 'version' should be compatible with the deployed variant and version of Keycloak.
 useCustomImage: true
-image: quay.io/infinispan/server:15.0.19.Final
+image: quay.io/infinispan/server:16.0.0.Dev06
 version: 15.0.19
 cacheDefaults:
   owners: 2

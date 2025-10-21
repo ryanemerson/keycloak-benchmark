@@ -66,6 +66,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-wrapper-
 
+      - name: Checkout Keycloak Feature branch
+        uses: actions/checkout@v5
+        with:
+          repository: keycloak/keycloak
+          ref: feature/infinispan-16.0
+          path: keycloak
+
+      - name: Build Keycloak SNAPSHOT
+        working-directory: keycloak
+        run: ./mvnw clean install -DskipTests
+
       - name: Setup ROSA CLI
         uses: ./.github/actions/rosa-cli-setup
         with:
