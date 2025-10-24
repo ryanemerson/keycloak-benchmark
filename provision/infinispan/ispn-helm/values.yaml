@@ -80,7 +80,7 @@ crossdc:
     interval: 2000
     timeout: 8000
 logging:
-  infinispan: info
+  infinispan: debug
   jgroups: info
 hotrodPassword: changeme
 metrics:
