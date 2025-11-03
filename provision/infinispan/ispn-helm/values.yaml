@@ -7,7 +7,7 @@ replicas: 3
 # When 'useCustomImage' is 'false' then operator defaults will be used.
 # Values of 'image' and 'version' should be compatible with the deployed variant and version of Keycloak.
 useCustomImage: true
-image: quay.io/remerson/infinispan@sha256:a58db90c1b0832a306ab131f909d844a26e57cc43242b860188b7756753bdf19 # Use image without MaxMetaspace
+image: quay.io/infinispan-test/server@sha256:e488ed633badf0a000949d60317652fa01855bda64a7f60e6087cfc984bc6818 # Use image without MaxMetaspace
 version: 15.0.19
 cacheDefaults:
   owners: 2
