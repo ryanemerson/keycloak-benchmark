@@ -6,4 +6,4 @@ namespace: keycloak
 customImage: false
 useAWSJDBCWrapper: true
 jdbcWrapperURL: https://github.com/awslabs/aws-advanced-jdbc-wrapper/releases/download/2.5.6/aws-advanced-jdbc-wrapper-2.5.6.jar
-keycloakImage: quay.io/remerson/keycloak@sha256:cb6289ff0fd6b39565afaa7a580fa3e84f0438dd42552ac36f7f4e0e6bf9039b
+keycloakImage: quay.io/remerson/keycloak@sha256:c2b3f407626b735a24b808168e771088564872b97c3db3b9555081f55ca9e6b9 # Keycloak w/ ISPN Dev07

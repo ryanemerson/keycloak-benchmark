@@ -12,7 +12,7 @@
   <properties>
     <keycloak.version>999.0.0-SNAPSHOT</keycloak.version>
     <keycloak-client.version>999.0.0-SNAPSHOT</keycloak-client.version>
-    <infinispan.version>16.0.0.Dev06</infinispan.version>
+    <infinispan.version>16.0.0.Dev07</infinispan.version>
     <junit5.version>5.10.1</junit5.version>
     <httpclient.version>4.5.14</httpclient.version>
     <maven.enforcer.plugin.version>3.4.1</maven.enforcer.plugin.version>
@@ -77,13 +77,6 @@
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-admin-client</artifactId>
         <version>${keycloak-client.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.infinispan</groupId>
-        <artifactId>infinispan-bom</artifactId>
-        <version>${infinispan.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
