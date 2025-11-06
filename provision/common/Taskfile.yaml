@@ -10,7 +10,7 @@ vars:
   KC_DB_POOL_MIN_SIZE: '{{default "5" .KC_DB_POOL_MIN_SIZE}}'
   KC_DATABASE: '{{default "postgres" .KC_DATABASE}}'
   KC_OPERATOR_TAG: '{{default "nightly" .KC_OPERATOR_TAG}}'
-  KC_CONTAINER_IMAGE: 'quay.io/remerson/keycloak@sha256:c2b3f407626b735a24b808168e771088564872b97c3db3b9555081f55ca9e6b9' # Keycloak w/ ISPN Dev07
+  KC_CONTAINER_IMAGE: 'quay.io/remerson/keycloak@sha256:3a08c7675c60b688e3088f0eb4353e5891434553117134a5cfbd49f403d47da3' # Keycloak w/ ISPN Dev08
   KC_INSTANCES: '{{default "1" .KC_INSTANCES}}'
   KC_CPU_REQUESTS: '{{default "0" .KC_CPU_REQUESTS}}'
   KC_CPU_LIMITS: '{{default "" .KC_CPU_LIMITS}}'
